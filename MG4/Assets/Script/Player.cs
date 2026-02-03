@@ -1,9 +1,16 @@
 using UnityEngine;
+using System;
 
 public class Bird : MonoBehaviour
 {
     public float jumpForce = 5f;
+    public AudioSource audioSource;
+    public AudioClip flapSound;
+    public AudioClip hitSound;
+
     private Rigidbody2D rb;
+
+    public static event Action OnScore;
 
     void Start()
     {
@@ -12,24 +19,28 @@ public class Bird : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
         {
-            Jump();
+            rb.velocity = Vector2.zero;
+            rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+            audioSource.PlayOneShot(flapSound);
         }
-    }
-
-    void Jump()
-    {
-        rb.velocity = Vector2.zero;
-        rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.collider.CompareTag("Pipe"))
         {
-            Debug.Log("Game Over");
+            audioSource.PlayOneShot(hitSound);
             Time.timeScale = 0f;
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Score"))
+        {
+            OnScore?.Invoke();
         }
     }
 }
